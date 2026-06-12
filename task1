@@ -1,0 +1,93 @@
+TASK-1
+
+1)
+#!/bin/bash
+cat>access_log.txt <<EOF
+192.168.1.10 job-apply user1
+192.168.1.10 job-apply user2
+192.168.1.10 job-apply user3
+192.168.1.10 job-apply user4
+192.168.1.10 job-apply user5
+192.168.1.10 job-apply user6
+192.168.1.20 login user7
+EOF
+
+declare -A count
+while IFS= read -r line
+do
+    ip=$(echo "$line"|awk '{print $1}')
+    action=$(echo "$line"|awk '{print $2}')
+    if [ "$action" = "job-apply" ]
+    then
+        ((count["$ip"]++))
+    fi
+done <access_log.txt
+
+for ip in "${!count[@]}"
+do
+    if [ "${count[$ip]}" -gt 5 ]
+    then
+        echo "$ip : ${count[$ip]}"
+    fi
+done
+
+
+2)
+A process P has PID 5000.
+Step 1
+Process starts.
+PID = 5000
+It prints:
+Before fork: parent PID = 5000
+Output so far:
+Before fork: parent PID = 5000
+Step 2
+Program executes:
+fork();
+fork() creates a new child process.
+Now there are 2 processes:
+Parent PID = 5000
+Child  PID = 5001
+(The question already says kernel assigned PID 5001 to child.)
+Step 3
+Return value of fork()
+In Parent
+pid = fork();
+returns child's PID.
+So parent gets:
+pid = 5001
+Parent prints:
+Parent: my PID = 5000, child PID = 5001
+In Child
+fork() returns:
+0
+Child prints:
+Child: my PID = 5001, parent PID = 5000
+Step 4
+After fork, parent and child run concurrently.
+The scheduler may run:
+•	Parent first 
+•	Child first 
+So order is not guaranteed.
+Case 1 : Parent runs first
+Before fork: parent PID = 5000
+Parent: my PID = 5000, child PID = 5001
+Child: my PID = 5001, parent PID = 5000
+Case 2 : Child runs first
+Before fork: parent PID = 5000
+Child: my PID = 5001, parent PID = 5000
+Parent: my PID = 5000, child PID = 5001
+First line always first
+Because it is printed before fork().
+Only one process exists then.
+So:
+Before fork: parent PID = 5000
+must appear first.
+wait(NULL)
+Parent executes:
+wait(NULL);
+Meaning:
+Parent waits until child finishes.
+It prevents the child from becoming a zombie process.
+But it does not force the parent's print statement to come after the child's print statement because the parent prints before calling wait().
+
